@@ -16,7 +16,9 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
+from subprocess import call
 
+#import Tkinter
 import argparse
 import sys
 import time
@@ -32,7 +34,7 @@ def load_graph(model_file):
     graph_def.ParseFromString(f.read())
   with graph.as_default():
     tf.import_graph_def(graph_def)
-
+  
   return graph
 
 def read_tensor_from_image_file(file_name, input_height=299, input_width=299,
@@ -67,7 +69,10 @@ def load_labels(label_file):
     label.append(l.rstrip())
   return label
 
-if __name__ == "__main__":
+#if __name__ == "__main__":
+
+def fromFile(imagename):
+  
   file_name = "tf_files/flower_photos/daisy/3475870145_685a19116d.jpg"
   model_file = "tf_files/retrained_graph.pb"
   label_file = "tf_files/retrained_labels.txt"
@@ -90,8 +95,16 @@ if __name__ == "__main__":
   parser.add_argument("--output_layer", help="name of output layer")
   args = parser.parse_args()
 
+  model_file = "tf_files/retrained_graph.pb"
+  file_name = "/Users/kylemumma/Documents/pyWorkspace/machineLearning/tensorflow-for-poets-2/scripts/"
+  
+  #call(["clear"])
+
+  file_name = file_name + imagename
+  
   if args.graph:
-    model_file = args.graph
+    #model_file = args.graph
+    pass
   if args.image:
     file_name = args.image
   if args.labels:
@@ -109,6 +122,7 @@ if __name__ == "__main__":
   if args.output_layer:
     output_layer = args.output_layer
 
+  
   graph = load_graph(model_file)
   t = read_tensor_from_image_file(file_name,
                                   input_height=input_height,
@@ -124,14 +138,19 @@ if __name__ == "__main__":
   with tf.Session(graph=graph) as sess:
     start = time.time()
     results = sess.run(output_operation.outputs[0],
-                      {input_operation.outputs[0]: t})
+                      {input_operation.outputs[0]: t}) * 100
     end=time.time()
   results = np.squeeze(results)
 
   top_k = results.argsort()[-5:][::-1]
   labels = load_labels(label_file)
-
-  print('\nEvaluation time (1-image): {:.3f}s\n'.format(end-start))
-  template = "{} (score={:0.5f})"
+  output = []
+  #output+= '\nEvaluation time (1-image): {:.3f}s\n'.format(end-start)
+  template = "{}: {:0.5f}%\n"
   for i in top_k:
-    print(template.format(labels[i], results[i]))
+    output.append( template.format(labels[i], results[i]))
+  return output
+
+if __name__ == "__main__":
+  test = fromFile("c.jpg")
+  print(test)
